@@ -32,7 +32,7 @@ func (S *InMemorySessionStore) Get(sessionID string) (*models.Session, error) {
 	Session, exists := S.sessions[sessionID]
 
 	// if time of session is expired , this is extra
-	if !exists || time.Now().After(Session.CreatedAt) {
+	if !exists || time.Now().After(Session.ExpiresAt) {
 		return nil, fmt.Errorf("session not found OR Expired")
 	}
 	return &Session, nil
