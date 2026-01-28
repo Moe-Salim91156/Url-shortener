@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 /*
@@ -15,9 +16,10 @@ import (
 
 func main() {
 
+	// userstore := store.NewInMemoryUserStore()
 	// here we could switch later and make the url store a DB ,
 	//and thats only the change that would happen
-	UrlStore := store.NewInMemoryStorage()
+	UrlStore := store.NewInMemoryURLStorage()
 	UrlHandler := handlers.NewURLHandler(UrlStore)
 
 	fmt.Println("Url shortner server running ")

@@ -16,7 +16,7 @@ type InMemoryStorage struct {
 
 // data{}
 // init new struct
-func NewInMemoryStorage() *InMemoryStorage {
+func NewInMemoryURLStorage() *InMemoryStorage {
 	return &InMemoryStorage{
 		urls: make(map[string]models.UrlData),
 	}
