@@ -2,6 +2,7 @@ package main
 
 import (
 	"Url-shortener/internal/handlers"
+	"Url-shortener/internal/services"
 	"Url-shortener/internal/store"
 	"fmt"
 	"log"
@@ -14,17 +15,25 @@ import (
 */
 
 func main() {
+	userStore := store.NewInMemoryUserStore()
+	sessionStore := store.NewInMemorySessionStore()
+	authService := services.NewAuthService(userStore, sessionStore)
 
-	// userstore := store.NewInMemoryUserStore()
-	// here we could switch later and make the url store a DB ,
-	//and thats only the change that would happen
+	// Test registration
+	err := authService.Register("alice", "password123")
+	fmt.Println("Register error:", err)
+
+	// Test login
+	sessionID, err := authService.Login("alice", "password123")
+	fmt.Println("Session ID:", sessionID)
+	fmt.Println("Login error:", err)
 	UrlStore := store.NewInMemoryURLStorage()
 	UrlHandler := handlers.NewURLHandler(UrlStore)
 
 	fmt.Println("Url shortner server running ")
 	http.HandleFunc("/shorten", UrlHandler.Shorten)
 	http.HandleFunc("/", UrlHandler.Resolve)
-	err := http.ListenAndServe(":8000", nil)
+	err = http.ListenAndServe(":8000", nil)
 	if err != nil {
 		log.Fatal("error running the http server")
 	}
