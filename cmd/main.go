@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+/*
+ * now when propagating the store, it could be anything, code wont change , just in main
+ because of the interface
+*/
+
+// this is package level var
+var UrlStore store.URLStore
+
 // handler , ednpoints
 func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	var urlModel models.UrlData
@@ -23,14 +31,14 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	urlModel.ShortCode = shortener.GenerateShortID()
 	urlModel.CreationTime = time.Now()
 
-	store.Save(urlModel)
+	UrlStore.Save(urlModel)
 	fmt.Fprint(w, urlModel.ShortCode)
 }
 func ResolveHandler(w http.ResponseWriter, r *http.Request) {
 	slug := r.URL.Path[1:]
 	// lookup using Get method/func
-	LongUrl, ok := store.Get(slug)
-	if !ok {
+	LongUrl, err := UrlStore.Get(slug)
+	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
@@ -39,6 +47,7 @@ func ResolveHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
+	UrlStore = store.NewInMemoryStorage()
 	fmt.Println("Url shortner server running ")
 	http.HandleFunc("/shorten", ShortenHandler)
 	http.HandleFunc("/", ResolveHandler)

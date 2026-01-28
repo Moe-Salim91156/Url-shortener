@@ -5,7 +5,7 @@ import (
 )
 
 func GenerateShortID() string {
-	var letters = "abcdefghijklmnopqrstuvwxyz"
+	var letters = "0123456789abcdefghijklmnopqrstuvwxyz"
 	var length int = 4
 
 	result := make([]byte, length)
