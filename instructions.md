@@ -8,13 +8,9 @@
 
 ## UNITS:
 
-	## 1. HTTP handler :
-		a. server that handles traffic on api endpoints
-		b. expose API endpoints (POST for shortening, GET handling for browser possibly)
-		c. interacts with DB.
-
-	## 2. DB: 
-		a. sqlite , stores the linked URL and its shortened version in it to be accessed by the user.
-		b. 
-
-	## 3. 
+	## v2 : 
+		## added Users (models + store(interface))
+		## auth service
+		## Users owning Urls , Create, list, Delete URls
+		## auth middleware?
+		## UI , GO templates

@@ -20,6 +20,7 @@ type InMemoryUserStore struct {
 
 func NewInMemoryUserStore() *InMemoryUserStore {
 	return &InMemoryUserStore{
+		// init attributes
 		UsersByName: make(map[string]models.User),
 		UsersByID:   make(map[string]models.User),
 	}
@@ -41,7 +42,9 @@ func (U *InMemoryUserStore) GetByID(id string) (*models.User, error) {
 	if !ok {
 		return nil, fmt.Errorf("ID for User Not Found")
 	}
+	// here there is a "gotcha" , im returning a pointer to a copy, mutations in the future would cause issues
 	return &user, nil
+	// but for now i only access it (read only) so no problems
 }
 
 func (U *InMemoryUserStore) GetByUsername(username string) (*models.User, error) {
