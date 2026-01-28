@@ -1,14 +1,11 @@
 package main
 
 import (
-	"Url-shortener/internal/models"
-	"Url-shortener/internal/shortener"
+	"Url-shortener/internal/handlers"
 	"Url-shortener/internal/store"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 )
 
 /*
@@ -16,41 +13,16 @@ import (
  because of the interface
 */
 
-// this is package level var
-var UrlStore store.URLStore
-
-// handler , ednpoints
-func ShortenHandler(w http.ResponseWriter, r *http.Request) {
-	var urlModel models.UrlData
-
-	if err := json.NewDecoder(r.Body).Decode(&urlModel); err != nil {
-		http.Error(w, "Invalid JSON", 400)
-		return
-	}
-
-	urlModel.ShortCode = shortener.GenerateShortID()
-	urlModel.CreationTime = time.Now()
-
-	UrlStore.Save(urlModel)
-	fmt.Fprint(w, urlModel.ShortCode)
-}
-func ResolveHandler(w http.ResponseWriter, r *http.Request) {
-	slug := r.URL.Path[1:]
-	// lookup using Get method/func
-	LongUrl, err := UrlStore.Get(slug)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	http.Redirect(w, r, LongUrl, 301)
-}
-
 func main() {
 
-	UrlStore = store.NewInMemoryStorage()
+	// here we could switch later and make the url store a DB ,
+	//and thats only the change that would happen
+	UrlStore := store.NewInMemoryStorage()
+	UrlHandler := handlers.NewURLHandler(UrlStore)
+
 	fmt.Println("Url shortner server running ")
-	http.HandleFunc("/shorten", ShortenHandler)
-	http.HandleFunc("/", ResolveHandler)
+	http.HandleFunc("/shorten", UrlHandler.Shorten)
+	http.HandleFunc("/", UrlHandler.Resolve)
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
 		log.Fatal("error running the http server")
