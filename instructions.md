@@ -14,3 +14,12 @@
 		## Users owning Urls , Create, list, Delete URls
 		## auth middleware?
 		## UI , GO templates
+
+
+## General Architectural Flow concluded : 
+	## request 
+	## middleware
+	## -> handler (translation)
+	## -> service (desicions)
+	## -> store (contracts/interfaces , HOW to Data)
+	## -> Data Layer (WHAT DATA)

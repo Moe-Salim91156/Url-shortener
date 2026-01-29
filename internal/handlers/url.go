@@ -36,10 +36,10 @@ func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
 func (h *URLHandler) Resolve(w http.ResponseWriter, r *http.Request) {
 	slug := r.URL.Path[1:]
 
-	LongUrl, err := h.store.Get(slug)
+	urlData, err := h.store.Get(slug)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	http.Redirect(w, r, LongUrl, 301)
+	http.Redirect(w, r, urlData.LongUrl, 301)
 }
