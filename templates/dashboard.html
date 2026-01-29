@@ -119,7 +119,7 @@
 <body>
     <div class="navbar">
         <div class="navbar-content">
-            <h1>🔗 URL Shortener</h1>
+            <h1>🔗 URL Shortener & 📋 Pastebin</h1>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </div>
@@ -135,6 +135,48 @@
                 <strong>✅ Success!</strong>
                 <div id="shortUrl"></div>
             </div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 Create Paste</h2>
+            <div>
+                <input type="text" id="pasteTitle" placeholder="Paste title (optional)" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; margin-bottom: 10px;">
+                <textarea id="pasteContent" placeholder="Paste your text here..." style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; min-height: 150px; font-family: monospace; margin-bottom: 10px;"></textarea>
+                <button id="createPasteBtn" style="padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer;">Create Paste</button>
+            </div>
+            <div id="pasteResult" style="display: none; background: #f0f9ff; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                <strong>✅ Paste created!</strong>
+                <div id="pasteUrl"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 Your Pastes ({{.PasteCount}})</h2>
+            
+            {{if .Pastes}}
+                {{range .Pastes}}
+                <div class="url-item">
+                    <div class="url-header">
+                        <div class="url-long">
+                            <strong>{{if .Title}}{{.Title}}{{else}}Untitled{{end}}</strong><br>
+                            <span style="color: #9ca3af; font-size: 14px;">{{len .Content}} characters</span>
+                        </div>
+                        <form method="POST" action="/delete-paste/{{.ShortCode}}" style="display: inline;">
+                            <button type="submit" class="delete-btn" onclick="return confirm('Delete paste?')">Delete</button>
+                        </form>
+                    </div>
+                    <a href="/paste/{{.ShortCode}}" target="_blank" class="url-short">localhost:8000/paste/{{.ShortCode}}</a>
+                    <span style="color: #9ca3af; font-size: 12px; margin-left: 10px;">
+                        {{.CreationTime.Format "Jan 02, 2006 15:04"}}
+                    </span>
+                </div>
+                {{end}}
+            {{else}}
+                <div class="empty">
+                    <div style="font-size: 48px;">📝</div>
+                    <p>No pastes yet. Create your first one above!</p>
+                </div>
+            {{end}}
         </div>
         
         <div class="card">
@@ -182,6 +224,31 @@
                 const data = await response.json();
                 document.getElementById('shortUrl').textContent = data.shortUrl;
                 document.getElementById('result').classList.add('show');
+                
+                setTimeout(() => location.reload(), 2000);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('createPasteBtn').addEventListener('click', async () => {
+            const title = document.getElementById('pasteTitle').value;
+            const content = document.getElementById('pasteContent').value;
+            if (!content) {
+                alert('Please enter some content');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/create-paste', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: title, content: content })
+                });
+                
+                const data = await response.json();
+                document.getElementById('pasteUrl').textContent = data.pasteUrl;
+                document.getElementById('pasteResult').style.display = 'block';
                 
                 setTimeout(() => location.reload(), 2000);
             } catch (error) {

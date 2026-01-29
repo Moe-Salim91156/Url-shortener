@@ -1,13 +1,14 @@
-# URL Shortener (Go)
+# URL Shortener & Pastebin (Go)
 
-A simple but **properly-architected URL Shortener** written in Go, built as a learning project to understand **backend system design, clean layering, authentication, and authorization** — not just "making it work".
+A simple but **properly-architected URL Shortener and Pastebin** written in Go, built as a learning project to understand **backend system design, clean layering, authentication, and authorization** — not just "making it work".
 
 This project includes:
 
 * User authentication (register / login / logout)
 * Session-based authorization
 * URL ownership enforcement
-* Web dashboard for managing URLs
+* **Pastebin service for sharing text/code snippets**
+* Web dashboard for managing URLs and pastes
 * Clean service → store → handler architecture
 
 ---
@@ -28,10 +29,19 @@ This project includes:
 * Resolve short URLs publicly
 * Each URL is owned by a user
 
+### 📋 Pastebin
+
+* Create text/code pastes with optional titles
+* View pastes in a clean, formatted display
+* Copy paste content to clipboard
+* Each paste is owned by a user
+* Public paste viewing via short codes
+
 ### 📊 Dashboard
 
 * List all URLs created by the logged-in user
-* Delete URLs you own
+* List all pastes created by the logged-in user
+* Delete URLs and pastes you own
 * Clean, minimal HTML pages (no JS frameworks)
 
 ### 🧱 Architecture
@@ -95,27 +105,31 @@ http://localhost:8000
 
 ### Public Routes
 
-| Route       | Description              |
-| ----------- | ------------------------ |
-| `/register` | Register a new user      |
-| `/login`    | Login                    |
-| `/{code}`   | Redirect to original URL |
+| Route         | Description              |
+| ------------- | ------------------------ |
+| `/register`   | Register a new user      |
+| `/login`      | Login                    |
+| `/{code}`     | Redirect to original URL |
+| `/paste/{code}` | View a paste           |
 
 ### Protected Routes (Login Required)
 
-| Route        | Description              |
-| ------------ | ------------------------ |
-| `/dashboard` | List your shortened URLs |
-| `/shorten`   | Create a new short URL   |
-| `/delete`    | Delete a URL you own     |
-| `/logout`    | Logout                   |
+| Route           | Description                |
+| --------------- | -------------------------- |
+| `/dashboard`    | List your URLs and pastes  |
+| `/shorten`      | Create a new short URL     |
+| `/delete/{code}` | Delete a URL you own      |
+| `/create-paste` | Create a new paste         |
+| `/delete-paste/{code}` | Delete a paste you own |
+| `/logout`       | Logout                     |
 
 ---
 
 ## 🧪 Authorization Rules
 
-* A user **can only see their own URLs**
-* A user **cannot delete URLs owned by others**
+* A user **can only see their own URLs and pastes**
+* A user **cannot delete URLs or pastes owned by others**
+* Pastes can be viewed publicly by anyone with the link
 * Unauthorized requests are redirected to `/login`
 
 ---
@@ -150,7 +164,9 @@ Middleware ensures:
 
 * Replace in-memory stores with SQLite/Postgres
 * Add CSRF protection
-* Add expiration for short URLs
+* Add expiration for short URLs and pastes
+* Syntax highlighting for code pastes
+* Private pastes (password-protected)
 * REST API version
 * Unit tests for services
 
