@@ -149,7 +149,6 @@ Middleware ensures:
 ## 🔮 Possible Extensions
 
 * Replace in-memory stores with SQLite/Postgres
-* Add password hashing (bcrypt)
 * Add CSRF protection
 * Add expiration for short URLs
 * REST API version
