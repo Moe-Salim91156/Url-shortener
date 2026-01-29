@@ -52,7 +52,7 @@ func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *URLHandler) Resolve(w http.ResponseWriter, r *http.Request) {
-	slug := strings.TrimPrefix(r.URL.Path, "/")
+	slug := r.URL.Path[1:]
 
 	if slug == "" || slug == "login" || slug == "register" || slug == "dashboard" ||
 		strings.HasPrefix(slug, "shorten") || strings.HasPrefix(slug, "delete") || slug == "logout" {
