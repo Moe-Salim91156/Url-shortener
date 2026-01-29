@@ -1,228 +1,184 @@
-# 🔗 URL Shortener
+# URL Shortener (Go)
 
-A lightweight, high-performance URL shortener built with **Go**. This service generates short codes for long URLs and redirects users seamlessly.
+A simple but **properly-architected URL Shortener** written in Go, built as a learning project to understand **backend system design, clean layering, authentication, and authorization** — not just "making it work".
+
+This project includes:
+
+* User authentication (register / login / logout)
+* Session-based authorization
+* URL ownership enforcement
+* Web dashboard for managing URLs
+* Clean service → store → handler architecture
+
+---
 
 ## ✨ Features
 
-- **URL Shortening**: Convert long URLs into compact 4-character codes
-- **Fast Redirects**: Instant redirection from short codes to original URLs
-- **In-Memory Storage**: Lightning-fast lookups using Go maps
-- **RESTful API**: Clean HTTP endpoints for shortening and resolving URLs
-- **Simple Architecture**: Organized codebase following Go best practices
+### 🔐 Authentication & Authorization
 
-## 🚀 Quick Start
+* Register new users
+* Login using username & password
+* Session-based auth using cookies
+* Protected routes using middleware
+* Ownership checks (users can only delete their own URLs)
 
-### Prerequisites
+### 🔗 URL Shortening
 
-- Go 1.x or higher installed on your system
+* Create short URLs
+* Resolve short URLs publicly
+* Each URL is owned by a user
 
-### Installation
+### 📊 Dashboard
 
-1. Clone the repository:
-```bash
-git clone https://github.com/Moe-Salim91156/Url-shortener.git
-cd Url-shortener
-```
+* List all URLs created by the logged-in user
+* Delete URLs you own
+* Clean, minimal HTML pages (no JS frameworks)
 
-2. Run the server:
-```bash
-go run cmd/main.go
-```
+### 🧱 Architecture
 
-The server will start on `http://localhost:8000`
+* Clear separation of concerns
+* In-memory stores (easy to replace with DB)
+* Dependency injection via `main.go`
+* No global state hacks
 
-## 📖 Usage
+---
 
-### Step 1: Shorten a URL
-
-Send a POST request to create a short code:
-
-**Using curl:**
-```bash
-curl -X POST http://localhost:8000/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"Url": "https://www.google.com"}'
-```
-
-**Using Postman or Insomnia:**
-- Method: `POST`
-- URL: `http://localhost:8000/shorten`
-- Headers: `Content-Type: application/json`
-- Body:
-  ```json
-  {
-    "Url": "https://www.google.com"
-  }
-  ```
-
-**Response:** A 4-character short code, for example:
-```
-abcd
-```
-
-### Step 2: Use the Short Code
-
-**Option A - Browser (Recommended):**
-
-Simply paste the short URL in your browser's address bar:
-```
-http://localhost:8000/abcd
-```
-
-You'll be automatically redirected to `https://www.google.com`
-
-**Option B - Command Line:**
-```bash
-curl -L http://localhost:8000/abcd
-```
-
-The `-L` flag tells curl to follow the redirect.
-
-### Complete Example
-
-```bash
-# 1. Shorten a URL and capture the code
-SHORT_CODE=$(curl -s -X POST http://localhost:8000/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"Url": "https://github.com"}')
-
-echo "Your short code is: $SHORT_CODE"
-
-# 2. Test the redirect
-curl -L http://localhost:8000/$SHORT_CODE
-```
-
-## 🏗️ Project Structure
+## 📂 Project Structure
 
 ```
 Url-shortener/
 ├── cmd/
-│   └── main.go           # Application entry point & HTTP handlers
+│   └── main.go            # Application entry point
 ├── internal/
-│   ├── models/
-│   │   └── model.go      # UrlData struct definition
-│   ├── shortener/
-│   │   └── shorten.go    # Short code generation logic
-│   └── store/
-│       └── store.go      # In-memory storage operations
-├── go.mod                # Go module definition
+│   ├── handlers/          # HTTP handlers (no business logic)
+│   ├── middleware/        # Auth middleware
+│   ├── models/            # Domain models
+│   ├── services/          # Business logic layer
+│   └── store/             # Data layer (in-memory stores)
+├── go.mod
+├── go.sum
 └── README.md
 ```
 
-## 🔧 API Reference
+### Layer Responsibilities
 
-### `POST /shorten`
-
-Create a short code for a long URL.
-
-**Request Body:**
-```json
-{
-  "Url": "https://www.example.com"
-}
-```
-
-**Response:** Plain text short code (e.g., `wxyz`)
-
-**Status Codes:**
-- `200 OK` - Successfully created short code
-- `400 Bad Request` - Invalid JSON payload
+| Layer      | Responsibility                         |
+| ---------- | -------------------------------------- |
+| Store      | Data persistence (currently in-memory) |
+| Service    | Business rules & validation            |
+| Handler    | HTTP glue (request/response)           |
+| Middleware | Cross-cutting concerns (auth)          |
 
 ---
 
-### `GET /{shortCode}`
+## 🚀 Running the Project
 
-Redirect to the original URL associated with the short code.
+### Requirements
 
-**Example:**
-```
-GET http://localhost:8000/wxyz
-```
+* Go 1.21+ (or compatible)
 
-**Response:** HTTP 301 redirect to the original URL
+### Run
 
-**Status Codes:**
-- `301 Moved Permanently` - Successful redirect to original URL
-- `404 Not Found` - Short code doesn't exist
-
-**Note:** This is how URL shorteners work! The user:
-1. Gets a short code from `/shorten`
-2. Manually constructs the short URL: `http://localhost:8000/{code}`
-3. Visits that URL in a browser or shares it
-4. Gets automatically redirected to the original long URL
-
-## 💡 How It Works
-
-```
-┌─────────┐      POST /shorten       ┌─────────┐
-│         │  ───────────────────────> │         │
-│  Client │  {"Url": "long-url"}     │  Server │
-│         │  <─────────────────────── │         │
-└─────────┘      "abcd"               └─────────┘
-                                            │
-     │                                      │ Stores in map:
-     │                                      │ "abcd" → "long-url"
-     │                                      ▼
-     │
-     │         GET /abcd              ┌─────────┐
-     └──────────────────────────────> │  Server │
-                                      │         │
-       301 Redirect → "long-url"     │ Lookup  │
-     <────────────────────────────── │  "abcd" │
-                                      └─────────┘
-```
-
-1. **Shorten**: Client sends long URL → Server generates random 4-char code → Returns code
-2. **Store**: Server saves mapping in memory (`shortCode → longUrl`)
-3. **Redirect**: User visits `localhost:8000/{shortCode}` → Server looks up URL → Returns 301 redirect
-
-## ⚠️ Current Limitations
-
-- **In-Memory Storage**: All shortened URLs are lost when the server restarts
-- **Manual URL Construction**: Users must manually add the short code to `localhost:8000/` 
-- **No Domain**: Only works on localhost (not accessible from other machines)
-- **No Collision Handling**: Duplicate short codes may theoretically occur
-- **No Custom Codes**: Short codes are randomly generated
-- **No Analytics**: No tracking of clicks or usage statistics
-- **No URL Validation**: Accepts any string as a URL
-- **No Expiration**: URLs stored indefinitely until restart
-
-## 🎯 Testing Tips
-
-**Quick Test Script:**
 ```bash
-#!/bin/bash
-echo "Starting URL shortener test..."
-
-# Start the server in background (if not already running)
-# go run cmd/main.go &
-
-# Shorten a URL
-echo -e "\n1. Shortening URL..."
-CODE=$(curl -s -X POST http://localhost:8000/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"Url": "https://github.com/Moe-Salim91156"}')
-
-echo "   Short code: $CODE"
-echo "   Short URL: http://localhost:8000/$CODE"
-
-# Test redirect
-echo -e "\n2. Testing redirect..."
-curl -I http://localhost:8000/$CODE 2>&1 | grep -i location
-
-echo -e "\n✅ Test complete! Try visiting: http://localhost:8000/$CODE"
+go run cmd/main.go
 ```
-## 👤 Author
 
-**Moe-Salim91156**
+Server will start at:
 
-- GitHub: [@Moe-Salim91156](https://github.com/Moe-Salim91156)
-
-## 🙏 Acknowledgments
-
-- Built with Go's standard library
-- Inspired by URL shortening services like bit.ly and tinyurl.com
+```
+http://localhost:8000
+```
 
 ---
 
-⭐ Star this repository if you find it helpful!
+## 🌍 Application Routes
+
+### Public Routes
+
+| Route       | Description              |
+| ----------- | ------------------------ |
+| `/register` | Register a new user      |
+| `/login`    | Login                    |
+| `/{code}`   | Redirect to original URL |
+
+### Protected Routes (Login Required)
+
+| Route        | Description              |
+| ------------ | ------------------------ |
+| `/dashboard` | List your shortened URLs |
+| `/shorten`   | Create a new short URL   |
+| `/delete`    | Delete a URL you own     |
+| `/logout`    | Logout                   |
+
+---
+
+## 🧪 Authorization Rules
+
+* A user **can only see their own URLs**
+* A user **cannot delete URLs owned by others**
+* Unauthorized requests are redirected to `/login`
+
+---
+
+## 🛠 Design Decisions
+
+### Why Services?
+
+Services encapsulate business logic so that:
+
+* Handlers stay thin
+* Logic is testable
+* Storage can be swapped without rewriting logic
+
+### Why Middleware for Auth?
+
+Authentication is a **cross-cutting concern**.
+Middleware ensures:
+
+* No duplication
+* Clear protected boundaries
+* Handlers assume a valid user
+
+### Why In-Memory Stores?
+
+* Focus on architecture first
+* Easy to replace with SQLite / Postgres later
+
+---
+
+## 🔮 Possible Extensions
+
+* Replace in-memory stores with SQLite/Postgres
+* Add password hashing (bcrypt)
+* Add CSRF protection
+* Add expiration for short URLs
+* REST API version
+* Unit tests for services
+
+---
+
+## 🎯 Learning Goals of This Project
+
+This project was built to:
+
+* Develop a **mental model for backend systems**
+* Practice clean Go project structure
+* Understand auth flows end-to-end
+* Build something that can be rewritten confidently
+
+> "I want to own this code — not just make it pass."
+
+---
+
+## 🧑‍💻 Author
+
+**Mohammad Salim**
+Software Engineer | Cloud & Backend Engineering
+
+---
+
+## 📜 License
+
+This project is for learning and experimentation purposes.
+Feel free to fork, modify, and extend it.
+
