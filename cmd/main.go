@@ -22,6 +22,8 @@ func main() {
 	urlHandler := handlers.NewURLHandler(urlStore, urlService)
 	dashboardHandler := handlers.NewDashboardHandler(urlService)
 
+	// vibe coded main to make sure all is good :)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -38,9 +40,7 @@ func main() {
 	http.Handle("/shorten", requireAuth(http.HandlerFunc(urlHandler.Shorten)))
 	http.Handle("/delete/", requireAuth(http.HandlerFunc(urlHandler.Delete)))
 
-	fmt.Println("🚀 Server starting on http://localhost:8000")
-	fmt.Println("📝 Register at: http://localhost:8000/register")
-	fmt.Println("🔑 Login at: http://localhost:8000/login")
+	fmt.Println(" Server starting on http://localhost:8000")
 
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
