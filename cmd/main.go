@@ -2,59 +2,45 @@ package main
 
 import (
 	"Url-shortener/internal/handlers"
+	"Url-shortener/internal/middleware"
 	"Url-shortener/internal/services"
 	"Url-shortener/internal/store"
 	"fmt"
-	// "log"
+	"log"
 	"net/http"
 )
 
-/*
-* now when propagating the store, it could be anything, code wont change , just in main
-because of the interface
-*/
 func main() {
-	// Auth test (keep this)
 	userStore := store.NewInMemoryUserStore()
 	sessionStore := store.NewInMemorySessionStore()
-	authService := services.NewAuthService(userStore, sessionStore)
-
-	err := authService.Register("alice", "password123")
-	fmt.Println("Register error:", err)
-
-	sessionID, err := authService.Login("alice", "password123")
-	fmt.Println("Session ID:", sessionID)
-	fmt.Println("Login error:", err)
-
-	// NEW: URL Service test
-	fmt.Println("\n=== Testing URL Service ===")
 	urlStore := store.NewInMemoryURLStorage()
+
+	authService := services.NewAuthService(userStore, sessionStore)
 	urlService := services.NewURLService(urlStore)
 
-	// Test 1: Create URL
-	code, err := urlService.CreateShortURL("https://google.com", "user_alice")
-	fmt.Printf("Created: %s, Error: %v\n", code, err)
+	authHandler := handlers.NewAuthHandler(authService)
+	urlHandler := handlers.NewURLHandler(urlStore, urlService)
+	dashboardHandler := handlers.NewDashboardHandler(urlService)
 
-	// Test 2: Get user's URLs
-	urls, _ := urlService.GetUserURLs("user_alice")
-	fmt.Printf("Alice has %d URLs\n", len(urls))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		urlHandler.Resolve(w, r)
+	})
+	http.HandleFunc("/login", authHandler.LoginPage)
+	http.HandleFunc("/register", authHandler.RegisterPage)
+	http.HandleFunc("/logout", authHandler.Logout)
 
-	// Test 3: Unauthorized delete (should fail)
-	err = urlService.DeleteURL(code, "user_bob")
-	fmt.Printf("Bob delete (should fail): %v\n", err)
+	requireAuth := middleware.RequireAuth(authService)
+	http.Handle("/dashboard", requireAuth(http.HandlerFunc(dashboardHandler.ShowDashboard)))
+	http.Handle("/shorten", requireAuth(http.HandlerFunc(urlHandler.Shorten)))
+	http.Handle("/delete/", requireAuth(http.HandlerFunc(urlHandler.Delete)))
 
-	// Test 4: Authorized delete (should work)
-	err = urlService.DeleteURL(code, "user_alice")
-	fmt.Printf("Alice delete (should work): %v\n", err)
+	fmt.Println("🚀 Server starting on http://localhost:8000")
+	fmt.Println("📝 Register at: http://localhost:8000/register")
+	fmt.Println("🔑 Login at: http://localhost:8000/login")
 
-	// Test 5: Check it's gone
-	urls, _ = urlService.GetUserURLs("user_alice")
-	fmt.Printf("Alice now has %d URLs\n", len(urls))
-
-	// Keep server running
-	fmt.Println("\n=== Starting Server ===")
-	urlHandler := handlers.NewURLHandler(urlStore)
-	http.HandleFunc("/shorten", urlHandler.Shorten)
-	http.HandleFunc("/", urlHandler.Resolve)
-	http.ListenAndServe(":8000", nil)
+	log.Fatal(http.ListenAndServe(":8000", nil))
 }

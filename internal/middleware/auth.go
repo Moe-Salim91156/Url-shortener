@@ -19,10 +19,12 @@ func RequireAuth(authService *services.AuthService) func(http.Handler) http.Hand
 			cookie, err := r.Cookie("session_id")
 			if err != nil {
 				http.Redirect(w, r, "/login", 303)
+				return
 			}
 			user, err := authService.GetUserFromSession(cookie.Value)
 			if err != nil {
 				http.Redirect(w, r, "/login", 303)
+				return
 			}
 			ctx := context.WithValue(r.Context(), UserIDKey, user.ID)
 
