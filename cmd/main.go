@@ -14,13 +14,16 @@ func main() {
 	userStore := store.NewInMemoryUserStore()
 	sessionStore := store.NewInMemorySessionStore()
 	urlStore := store.NewInMemoryURLStorage()
+	pasteStore := store.NewInMemoryPasteStore()
 
 	authService := services.NewAuthService(userStore, sessionStore)
 	urlService := services.NewURLService(urlStore)
+	pasteService := services.NewPasteService(pasteStore)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	urlHandler := handlers.NewURLHandler(urlStore, urlService)
-	dashboardHandler := handlers.NewDashboardHandler(urlService)
+	pasteHandler := handlers.NewPasteHandler(pasteService)
+	dashboardHandler := handlers.NewDashboardHandler(urlService, pasteService)
 
 	// vibe coded main to make sure all is good :)
 
@@ -39,6 +42,9 @@ func main() {
 	http.Handle("/dashboard", requireAuth(http.HandlerFunc(dashboardHandler.ShowDashboard)))
 	http.Handle("/shorten", requireAuth(http.HandlerFunc(urlHandler.Shorten)))
 	http.Handle("/delete/", requireAuth(http.HandlerFunc(urlHandler.Delete)))
+	http.Handle("/create-paste", requireAuth(http.HandlerFunc(pasteHandler.CreatePaste)))
+	http.Handle("/delete-paste/", requireAuth(http.HandlerFunc(pasteHandler.DeletePaste)))
+	http.HandleFunc("/paste/", pasteHandler.ViewPaste)
 
 	fmt.Println(" Server starting on http://localhost:8000")
 
