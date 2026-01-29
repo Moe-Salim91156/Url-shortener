@@ -22,6 +22,16 @@ func NewAuthService(us store.UserStore, ss store.SessionStore) *AuthService {
 	}
 }
 
+// here validatoin session cookie
+func (a *AuthService) GetUserFromSession(sessionID string) (*models.User, error) {
+	session, err := a.sessionStore.Get(sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.userStore.GetByID(session.UserID)
+}
+
 func generateID() string {
 	bytes := make([]byte, 16)
 	rand.Read(bytes)
