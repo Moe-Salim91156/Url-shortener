@@ -55,8 +55,8 @@ func (h *URLHandler) Resolve(w http.ResponseWriter, r *http.Request) {
 	slug := r.URL.Path[1:]
 
 	if slug == "" || slug == "login" || slug == "register" || slug == "dashboard" ||
-		strings.HasPrefix(slug, "shorten") || strings.HasPrefix(slug, "delete") || 
-		strings.HasPrefix(slug, "paste") || strings.HasPrefix(slug, "create-paste") || 
+		strings.HasPrefix(slug, "shorten") || strings.HasPrefix(slug, "delete") ||
+		strings.HasPrefix(slug, "paste") || strings.HasPrefix(slug, "create-paste") ||
 		strings.HasPrefix(slug, "delete-paste") || slug == "logout" {
 		return
 	}
