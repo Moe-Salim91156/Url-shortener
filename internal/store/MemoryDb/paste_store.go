@@ -5,13 +5,6 @@ import (
 	"fmt"
 )
 
-type PasteStore interface {
-	Save(paste models.Paste) error
-	Get(shortCode string) (*models.Paste, error)
-	GetByOwner(ownerID string) ([]models.Paste, error)
-	Delete(shortCode string) error
-}
-
 type InMemoryPasteStore struct {
 	pastes map[string]models.Paste
 }

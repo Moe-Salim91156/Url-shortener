@@ -4,7 +4,7 @@ import (
 	"Url-shortener/internal/handlers"
 	"Url-shortener/internal/middleware"
 	"Url-shortener/internal/services"
-	"Url-shortener/internal/store"
+	"Url-shortener/internal/store/MemoryDb"
 	"fmt"
 	"log"
 	"net/http"

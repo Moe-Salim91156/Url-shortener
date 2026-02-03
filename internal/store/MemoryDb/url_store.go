@@ -5,12 +5,6 @@ import "fmt"
 
 // treating this as a sepereate storage service
 // means that if we would add actual DB , the interface will take care of the rest of the code, no changing reqiured(much/collateral)
-type URLStore interface {
-	Save(data models.UrlData) error
-	Get(shortCode string) (*models.UrlData, error)
-	GetByOwner(OwnerID string) ([]models.UrlData, error)
-	Delete(shortCode string) error
-}
 
 type InMemoryStorage struct {
 	urls map[string]models.UrlData

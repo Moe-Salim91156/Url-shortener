@@ -7,11 +7,6 @@ import (
 )
 
 // when user register , program must store its data like the url_store manner
-type UserStore interface {
-	Create(user models.User) error
-	GetByUsername(username string) (*models.User, error)
-	GetByID(id string) (*models.User, error)
-}
 
 type InMemoryUserStore struct {
 	UsersByName map[string]models.User //for retrieving by username

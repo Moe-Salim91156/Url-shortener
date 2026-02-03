@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-type SessionStore interface {
-	Create(session models.Session) error
-	Get(sessionID string) (*models.Session, error)
-	Delete(sessionID string) error
-}
 type InMemorySessionStore struct {
 	sessions map[string]models.Session
 	// key is SESSION_ID
