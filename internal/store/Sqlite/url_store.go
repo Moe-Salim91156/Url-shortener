@@ -49,3 +49,15 @@ func (s *SQLiteStore) Get(shortCode string) (*models.UrlData, error) {
 	data.CreationTime, _ = time.Parse(time.RFC3339, timeStr)
 	return &data, nil
 }
+
+func GetByOwner(OwnerID string) ([]models.UrlData, error) {
+	// loop through urls table
+	// any url matches the ownerID provided, append it to resuls slice
+	// return a slice with all urls that this owner OWNS
+	query := `SELECT FROM urls WHERE owner_id = ?`
+	return nil, nil
+}
+
+func Delete(shortCode string) error {
+	return nil
+}
