@@ -33,6 +33,19 @@ func (s *SQLiteStore) Get(shortCode string) (*models.UrlData, error) {
 
 	query := `SELECT short_code , long_url, owner_id , creation_time FROM urls WHERE short_code = ? `
 	rows, err := s.db.Query(query)
-
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var timeStr string
+	for rows.Next() {
+		err = rows.Scan(
+			&data.ShortCode,
+			&data.LongUrl,
+			&data.OwnerID,
+			&timeStr,
+		)
+	}
+	data.CreationTime, _ = time.Parse(time.RFC3339, timeStr)
 	return &data, nil
 }
