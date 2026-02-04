@@ -39,7 +39,7 @@ func (h *DashboardHandler) ShowDashboard(w http.ResponseWriter, r *http.Request)
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/dashboard.html"))
-	data := map[string]interface{}{
+	data := map[string]any{
 		"URLs":       urls,
 		"Count":      len(urls),
 		"Pastes":     pastes,

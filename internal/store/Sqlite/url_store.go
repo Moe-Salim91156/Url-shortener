@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   url_store.go                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: moe <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/02/04 16:21:54 by moe               #+#    #+#             */
+/*   Updated: 2026/02/04 16:23:23 by moe              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 package sqlite
 
 import (
@@ -27,35 +39,54 @@ func (s *SQLiteStore) Save(data models.UrlData) error {
 	}
 	return nil
 }
-
 func (s *SQLiteStore) Get(shortCode string) (*models.UrlData, error) {
 	var data models.UrlData
+	var timeStr string
 
-	query := `SELECT short_code , long_url, owner_id , creation_time FROM urls WHERE short_code = ? `
-	rows, err := s.db.Query(query)
+	query := `SELECT short_code, long_url, owner_id, creation_time FROM urls WHERE short_code = ?`
+
+	err := s.db.QueryRow(query, shortCode).Scan(
+		&data.ShortCode,
+		&data.LongUrl,
+		&data.OwnerID,
+		&timeStr,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("URL NOT FOUND")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	data.CreationTime, _ = time.Parse(time.RFC3339, timeStr)
+	return &data, nil
+}
+func (s *SQLiteStore) GetByOwner(ownerID string) ([]models.UrlData, error) {
+	var url models.UrlData
+	var timeStr string
+
+	query := `SELECT short_code, long_url, owner_id, creation_time FROM urls WHERE owner_id = ?`
+
+	rows, err := s.db.Query(query, ownerID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var timeStr string
-	for rows.Next() {
-		err = rows.Scan(
-			&data.ShortCode,
-			&data.LongUrl,
-			&data.OwnerID,
-			&timeStr,
-		)
-	}
-	data.CreationTime, _ = time.Parse(time.RFC3339, timeStr)
-	return &data, nil
-}
 
-func GetByOwner(OwnerID string) ([]models.UrlData, error) {
-	// loop through urls table
-	// any url matches the ownerID provided, append it to resuls slice
-	// return a slice with all urls that this owner OWNS
-	query := `SELECT FROM urls WHERE owner_id = ?`
-	return nil, nil
+	var urls []models.UrlData
+
+	for rows.Next() {
+		err := rows.Scan(&url.ShortCode, &url.LongUrl, &url.OwnerID, &timeStr)
+		if err != nil {
+			return nil, err
+		}
+
+		url.CreationTime, _ = time.Parse(time.RFC3339, timeStr)
+		urls = append(urls, url)
+	}
+
+	return urls, rows.Err()
 }
 
 func Delete(shortCode string) error {
