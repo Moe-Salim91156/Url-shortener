@@ -6,7 +6,7 @@
 /*   By: moe <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 16:21:54 by moe               #+#    #+#             */
-/*   Updated: 2026/02/04 16:23:23 by moe              ###   ########.fr       */
+/*   Updated: 2026/02/04 16:27:41 by moe              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,8 @@ func (s *SQLiteStore) GetByOwner(ownerID string) ([]models.UrlData, error) {
 	return urls, rows.Err()
 }
 
-func Delete(shortCode string) error {
-	return nil
+func (s *SQLiteStore) Delete(shortCode string) error {
+	query := "DELETE FROM urls WHERE short_code = ?"
+	_, err := s.db.Exec(query, shortCode)
+	return err
 }
